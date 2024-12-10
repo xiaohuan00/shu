@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书标题生成器</title>
+    <style>
+        body {
+            font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100vw;
+            position: relative;
+            overflow-x: hidden;
+            background: linear-gradient(
+                135deg,
+                #ffeddb 0%,
+                #e6f4ff 25%,
+                #fff0f5 50%,
+                #e8fff0 75%,
+                #fff2e6 100%
+            );
+        }
+
+        .background-container {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            z-index: -2;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .background-container img {
+            width: 120%;
+            height: auto;
+            transform: translateX(-10%);
+        }
+
+        .chatbox {
+            max-width: 800px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-header {
+            padding: 24px;
+            background: rgba(248, 248, 248, 0.9);
+            color: #333333;
+            border-radius: 16px 16px 0 0;
+            text-align: center;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .chat-body {
+            height: 500px;
+            padding: 24px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .chat-message {
+            margin-bottom: 16px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+
+        .user-message {
+            background: rgba(247, 247, 247, 0.9);
+            margin-left: auto;
+            color: #333333;
+        }
+
+        .assistant-message {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #eeeeee;
+            color: #444444;
+        }
+
+        .chat-footer {
+            padding: 24px;
+            border-top: 1px solid #eeeeee;
+            display: flex;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0 0 16px 16px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            font-size: 15px;
+            transition: border-color 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="text"]:focus {
+            border-color: #999999;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #333333;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #444444;
+        }
+
+        .wave-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: -1;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .wave-container img {
+            width: 120%;
+            height: auto;
+            transform: translateX(-10%);
+        }
+    </style>
+</head>
+<body>
+    <div class="wave-container">
+        <img src="/static/images/wave.png" alt="wave">
+    </div>
+
+    <div class="background-container">
+        <img src="/static/images/bj.png" alt="background">
+    </div>
+
+    <div class="chatbox">
+        <div class="chat-header">
+            <h2>小红书标题生成器</h2>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <!-- 消息会在这里动态添加 -->
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="userInput" placeholder="请输入内容描述..." />
+            <button onclick="sendMessage()">生成标题</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 添加用户消息
+            addMessage(message, 'user-message');
+            
+            // 发送到服务器
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ prompt: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage(data.response, 'assistant-message');
+            })
+            .catch(error => {
+                addMessage('抱歉，发生错误：' + error, 'assistant-message');
+            });
+
+            input.value = '';
+        }
+
+        function addMessage(text, className) {
+            const chatBody = document.getElementById('chatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message ' + className;
+            messageDiv.textContent = text;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        // 支持回车发送
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
